@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 const FileSearch = ({ title, onFileSearch }) => {
   const [inputActive, setInputActive] = useState(false);
@@ -47,7 +49,7 @@ const FileSearch = ({ title, onFileSearch }) => {
               setInputActive(true);
             }}
           >
-            搜索
+            <FontAwesomeIcon icon={faSearch} />
           </button>
         </div>
       )}
