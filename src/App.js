@@ -8,7 +8,7 @@ function App() {
       <div className="row">
         <div className="col-3 left-panel">
           <FileSearch title="我的策略"
-          onFileSearch={() => {}} />
+          onFileSearch={(value) => { console.log(value) }} />
         </div>
         <div className="col-9 bg-primary right-panel">
           <h1>this is right</h1>
