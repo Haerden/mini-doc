@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const FileSearch = ({ title, onFileSearch }) => {
   const [inputActive, setInputActive] = useState(false);
@@ -38,32 +38,34 @@ const FileSearch = ({ title, onFileSearch }) => {
   }, [inputActive]);
 
   return (
-    <div className="alert alert-primary">
+    <div className="alert alert-primary d-flex justify-content-between align-items-center">
       {!inputActive && (
-        <div className="d-flex justify-content-between align-items-center">
+        <>
           <span>{title}</span>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn"
             onClick={() => {
               setInputActive(true);
             }}
           >
-            <FontAwesomeIcon icon={faSearch} />
+            <FontAwesomeIcon icon={faSearch} size="lg" />
           </button>
-        </div>
+        </>
       )}
       {inputActive && (
-        <div className="row d-flex">
-          <input className="col-8" ref={node} value={value} onChange={(e) => { setValue(e.target.value) }}></input>
+        <>
+          <input className="col-10" ref={node} value={value} onChange={(e) => { setValue(e.target.value) }}></input>
           <button
             type="button"
-            className="btn btn-primary col-4"
+            className="icon-button col-2"
             onClick={closeSearch}
           >
-            关闭
+            <FontAwesomeIcon 
+            title="关闭"
+            icon={faTimes} size="lg" />
           </button>
-        </div>
+        </>
       )}
     </div>
   );
