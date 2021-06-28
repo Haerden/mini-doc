@@ -11,7 +11,7 @@ function App() {
         <div className="col-3 left-panel">
           <FileSearch title="我的策略"
           onFileSearch={(value) => { console.log(value) }} />
-          <FileList files={defaultFiles} onFileClick={(id) =>{}} onFileDelete={(id) =>{}} />
+          <FileList files={defaultFiles} onFileClick={(id) =>{}} onFileDelete={(id) =>{}} onSaveEdit={(id, newValue) => { console.log(id, newValue);}} />
         </div>
         <div className="col-9 bg-primary right-panel">
           <h1>this is right</h1>
