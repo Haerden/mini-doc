@@ -34,7 +34,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     <ul className="list-group list-group-flush file-list">
       {files.map((file) => (
         <li
-          className="list-group-item bg-light row d-flex align-items-center file-item"
+          className="list-group-item bg-light row d-flex align-items-center m-0 file-item"
           key={file.id}
         >
           {file.id !== editSatus ? (
