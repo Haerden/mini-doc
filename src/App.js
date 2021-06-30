@@ -4,6 +4,7 @@ import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
+import TabList from './components/TabList';
 import defaultFiles from "./utils/defaultFiles";
 
 function App() {
@@ -47,7 +48,7 @@ function App() {
           </div>
         </div>
         <div className="col-6 right-panel">
-          <h4>this is right</h4>
+          <TabList files={defaultFiles} activeId="2" onTabClick={(id)=>{console.log(id);}}/>
         </div>
       </div>
     </div>
