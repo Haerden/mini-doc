@@ -48,7 +48,11 @@ function App() {
           </div>
         </div>
         <div className="col-6 right-panel">
-          <TabList files={defaultFiles} activeId="2" onTabClick={(id)=>{console.log(id);}}/>
+          <TabList files={defaultFiles} activeId="2" 
+          unsaveIds={['1','2']}
+          onTabClick={(id)=>{console.log(id);}}
+          onCloseTab={(id)=> {console.log('close', id);}}
+          />
         </div>
       </div>
     </div>
