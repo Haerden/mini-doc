@@ -18,8 +18,8 @@ const TabList = ({ files, activeId, unsaveIds, onTabClick, onTabClose }) => {
 
         return (
           <li className="nav-item" key={file.id}>
-            <a
-              href="#"
+            <button
+              href="button"
               className={fClassName}
               onClick={(e) => {
                 e.preventDefault();
@@ -45,7 +45,7 @@ const TabList = ({ files, activeId, unsaveIds, onTabClick, onTabClose }) => {
                   }}
                 ></span>
               )}
-            </a>
+            </button>
           </li>
         );
       })}

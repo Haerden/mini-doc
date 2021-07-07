@@ -20,6 +20,9 @@ function App() {
   });
   const activeFile = files.find(file => file.id === activeFileID);
 
+  const fileSearch = (keyword) => {
+    
+  };
   // fileClick
   const fileClick = (fileID) => {
     setActiveFileID(fileID);
@@ -45,36 +48,53 @@ function App() {
     }
   };
 
-  const fileChange = (id, value) => {
-    const newFiles = files.map(file => {
+  // title or body
+  const changeFile = (id, key, value) => {
+    return files.map(file => {
       if(file.id === id) {
-        file.body = value;
+        file[key] = value;
       }
 
       return file;
     });
+  };
+
+  const fileChange = (id, value) => {
+    const newFiles = changeFile(id, 'body', value);
+
+    setFiles(newFiles);
+    // update unsavedIDs
+    if (!unsavedFileIDs.includes(id)) {
+      setUnSavedFileIDs([...unsavedFileIDs, id]);
+    }
+  };
+
+  const updateFileName = (id, value) => {
+    const newFiles = changeFile(id, 'title', value);
 
     setFiles(newFiles);
   };
-  
+
+  const deleteFile = (id) => {
+    const newFiles = files.filter(file => file.id !== id);
+    setFiles(newFiles);
+    tabClose(id);
+  };
+
   return (
     <div className="App container-fluid px-0">
       <div className="row g-0">
         <div className="col-6 left-panel">
           <FileSearch
             title="我的策略"
-            onFileSearch={(value) => {
-              console.log(value);
-            }}
+            onFileSearch={fileSearch}
           />
 
           <FileList
             files={files}
             onFileClick={fileClick}
-            onFileDelete={(id) => { }}
-            onSaveEdit={(id, newValue) => {
-              console.log(id, newValue);
-            }}
+            onFileDelete={deleteFile}
+            onSaveEdit={updateFileName}
           />
 
           <div className="row g-0 button-group">

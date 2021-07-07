@@ -30,6 +30,7 @@
 .right-panel {
   position: relative;
 }
+
 .CodeMirror-scroll {
   height: 600px !important;
 }
