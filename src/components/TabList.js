@@ -2,9 +2,9 @@ import React from "react";
 import classnames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import './TabList.scss';
+import "./TabList.scss";
 
-const TabList = ({ files, activeId, unsaveIds, onTabClick, onCloseTab }) => {
+const TabList = ({ files, activeId, unsaveIds, onTabClick, onTabClose }) => {
   return (
     <ul className="nav nav-pills tablist-component">
       {files.map((file) => {
@@ -13,7 +13,7 @@ const TabList = ({ files, activeId, unsaveIds, onTabClick, onCloseTab }) => {
         const fClassName = classnames({
           "nav-link": true,
           active: file.id === activeId,
-          'withunsaved': withUnsavedMark
+          withunsaved: withUnsavedMark,
         });
 
         return (
@@ -27,12 +27,23 @@ const TabList = ({ files, activeId, unsaveIds, onTabClick, onCloseTab }) => {
               }}
             >
               {file.title}
-              <span className="close-icon" onClick={(e) => {e.stopPropagation(); onCloseTab(file.id)}}>
+              <span
+                className="close-icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTabClose(file.id);
+                }}
+              >
                 <FontAwesomeIcon icon={faTimes} size="lg" />
               </span>
               {withUnsavedMark && (
-                 <span className="rounded-circle unsaved-icon" onClick={(e) => {e.stopPropagation(); onCloseTab(file.id)}}>
-               </span>
+                <span
+                  className="rounded-circle unsaved-icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTabClose(file.id);
+                  }}
+                ></span>
               )}
             </a>
           </li>

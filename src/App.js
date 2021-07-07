@@ -20,6 +20,43 @@ function App() {
   });
   const activeFile = files.find(file => file.id === activeFileID);
 
+  // fileClick
+  const fileClick = (fileID) => {
+    setActiveFileID(fileID);
+    // openedFileIDs dont have fileID add
+    if (!openedFileIDs.includes(fileID)) {
+      setOpenedFileIds([...openedFileIDs, fileID]);
+    }
+  };
+
+  const tabClick = (fileID) => {
+    setActiveFileID(fileID);
+  };
+
+  const tabClose = (id) => {
+    const tabsWithout = openedFileIDs.filter(fileID => id !== fileID);
+
+    setOpenedFileIds(tabsWithout);
+
+    if (tabsWithout.length > 0) {
+      setActiveFileID(tabsWithout[0]);
+    } else {
+      setActiveFileID('');
+    }
+  };
+
+  const fileChange = (id, value) => {
+    const newFiles = files.map(file => {
+      if(file.id === id) {
+        file.body = value;
+      }
+
+      return file;
+    });
+
+    setFiles(newFiles);
+  };
+  
   return (
     <div className="App container-fluid px-0">
       <div className="row g-0">
@@ -33,7 +70,7 @@ function App() {
 
           <FileList
             files={files}
-            onFileClick={(id) => { }}
+            onFileClick={fileClick}
             onFileDelete={(id) => { }}
             onSaveEdit={(id, newValue) => {
               console.log(id, newValue);
@@ -69,12 +106,13 @@ function App() {
               <TabList files={openedFiles}
                 activeId={activeFileID}
                 unsaveIds={unsavedFileIDs}
-                onTabClick={(id) => { console.log(id); }}
-                onCloseTab={(id) => { console.log('close', id); }}
+                onTabClick={tabClick}
+                onTabClose={tabClose}
               />
               <SimpleMDE
+                key={activeFile && activeFile.id}
                 value={activeFile && activeFile.body}
-                onChange={(value) => { console.log(value); }}
+                onChange={(value) => fileChange(activeFile.id, value)}
               />
             </>
           )}
