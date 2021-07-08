@@ -3,11 +3,13 @@ import SimpleMDE from 'react-simplemde-editor';
 import "easymde/dist/easymde.min.css";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { v4 } from 'uuid';
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
 import TabList from './components/TabList';
+import Charts from './components/Charts';
 import defaultFiles from "./utils/defaultFiles";
 
 function App() {
@@ -15,13 +17,17 @@ function App() {
   const [activeFileID, setActiveFileID] = useState('');
   const [openedFileIDs, setOpenedFileIds] = useState([]);
   const [unsavedFileIDs, setUnSavedFileIDs] = useState([]);
+  const [searchedFiles, setSearchedFiles] = useState([]);
+
   const openedFiles = openedFileIDs.map(openID => {
     return files.find(file => file.id === openID)
   });
   const activeFile = files.find(file => file.id === activeFileID);
 
   const fileSearch = (keyword) => {
-    
+    const newFiles = files.filter(file => file.title.includes(keyword));
+
+    setSearchedFiles(newFiles);
   };
   // fileClick
   const fileClick = (fileID) => {
@@ -81,6 +87,23 @@ function App() {
     tabClose(id);
   };
 
+  const createNewFile = () => {
+    const newID = v4();
+    const newFiles = [
+      ...files,
+      {
+        id: newID,
+        title: '',
+        body: '## please input',
+        createdAt: new Date().getTime(),
+        isNew: true
+      }
+    ];
+
+    setFiles(newFiles);
+  };
+  const fileListArr = (searchedFiles.length ? searchedFiles : files);
+
   return (
     <div className="App container-fluid px-0">
       <div className="row g-0">
@@ -89,9 +112,9 @@ function App() {
             title="我的策略"
             onFileSearch={fileSearch}
           />
-
+          {/* <Charts /> */}
           <FileList
-            files={files}
+            files={fileListArr}
             onFileClick={fileClick}
             onFileDelete={deleteFile}
             onSaveEdit={updateFileName}
@@ -103,7 +126,7 @@ function App() {
                 text="新建"
                 colorClass="btn-primary"
                 icon={faPlus}
-                onClick={() => { }}
+                onClick={createNewFile}
               />
             </div>
             <div className="col">

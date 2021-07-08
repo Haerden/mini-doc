@@ -37,7 +37,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
           className="list-group-item bg-light row d-flex align-items-center m-0 file-item"
           key={file.id}
         >
-          {file.id !== editSatus ? (
+          {(file.id !== editSatus && file.isNew !== true) ? (
             <>
               <span className="col-2">
                 <FontAwesomeIcon icon={faMarkdown} size="lg" />
