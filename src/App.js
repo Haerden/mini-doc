@@ -9,7 +9,7 @@ import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
 import TabList from './components/TabList';
-import Charts from './components/Charts';
+// import Charts from './components/Charts';
 import defaultFiles from "./utils/defaultFiles";
 
 function App() {
@@ -59,6 +59,7 @@ function App() {
     return files.map(file => {
       if(file.id === id) {
         file[key] = value;
+        file.isNew = false;
       }
 
       return file;
@@ -107,7 +108,7 @@ function App() {
   return (
     <div className="App container-fluid px-0">
       <div className="row g-0">
-        <div className="col-6 left-panel">
+        <div className="col-4 left-panel">
           <FileSearch
             title="我的策略"
             onFileSearch={fileSearch}
@@ -139,7 +140,7 @@ function App() {
             </div>
           </div>
         </div>
-        <div className="col-6 right-panel">
+        <div className="col-8 right-panel">
           {!activeFileID ? (
             <div className="start-page">
               choose or create file

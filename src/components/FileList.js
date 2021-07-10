@@ -6,29 +6,44 @@ import useKeyPress from "../hooks/useKeyPress";
 
 const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const [editSatus, setEditStatus] = useState(false);
-  const [value, setValue] = useState(false);
+  const [value, setValue] = useState('');
   // enter
   const enterPressed = useKeyPress(13);
   // esc
   const escPressed = useKeyPress(27);
 
-  const closeSearch = () => {
+  const closeSearch = (editItem) => {
     setEditStatus(false);
     setValue("");
+    // if we editing a new file we should Del file
+    if (editItem.isNew) {
+      onFileDelete(editItem.id);
+    }
   };
 
   useEffect(() => {
-    if (enterPressed && editSatus) {
-      const editItem = files.find((item) => item.id === editSatus);
+    const editItem = files.find((item) => item.id === editSatus);
 
+    if (enterPressed && editSatus && value.trim() !== '') {
       onSaveEdit(editItem.id, value);
       setEditStatus(false);
       setValue("");
     }
     if (escPressed && editSatus) {
-      closeSearch();
+      closeSearch(editItem);
     }
-  }, [enterPressed, escPressed, value, editSatus, files, onSaveEdit]);
+    // eslint-disable-next-line
+  }, [enterPressed, escPressed, value, editSatus, files]);
+
+  // 设置正在编辑的ID 为newfile
+  useEffect(()=> {
+    const newFile = files.find(file => file.isNew);
+
+    if(newFile) {
+      setEditStatus(newFile.id);
+      setValue(newFile.title);
+    }
+  }, [files]);
 
   return (
     <ul className="list-group list-group-flush file-list">
@@ -70,7 +85,8 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
             <>
               <input
                 className="col-10"
-                value={value}
+                value={value} 
+                placeholder="请输入文件名称"
                 onChange={(e) => {
                   setValue(e.target.value);
                 }}
@@ -78,7 +94,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
               <button
                 type="button"
                 className="icon-button col-2"
-                onClick={closeSearch}
+                onClick={() => closeSearch(file)}
               >
                 <FontAwesomeIcon title="关闭" icon={faTimes} size="lg" />
               </button>
