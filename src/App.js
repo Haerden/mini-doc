@@ -4,6 +4,7 @@ import "easymde/dist/easymde.min.css";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { v4 } from 'uuid';
+import { flattenArr, objToArr } from './utils/helper';
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
@@ -13,19 +14,15 @@ import TabList from './components/TabList';
 import defaultFiles from "./utils/defaultFiles";
 
 function App() {
-  const [files, setFiles] = useState(defaultFiles);
+  const [files, setFiles] = useState(flattenArr(defaultFiles));
   const [activeFileID, setActiveFileID] = useState('');
   const [openedFileIDs, setOpenedFileIds] = useState([]);
   const [unsavedFileIDs, setUnSavedFileIDs] = useState([]);
   const [searchedFiles, setSearchedFiles] = useState([]);
-
-  const openedFiles = openedFileIDs.map(openID => {
-    return files.find(file => file.id === openID)
-  });
-  const activeFile = files.find(file => file.id === activeFileID);
+  const filesArr = objToArr(files);
 
   const fileSearch = (keyword) => {
-    const newFiles = files.filter(file => file.title.includes(keyword));
+    const newFiles = filesArr.filter(file => file.title.includes(keyword));
 
     setSearchedFiles(newFiles);
   };
@@ -56,14 +53,11 @@ function App() {
 
   // title or body
   const changeFile = (id, key, value) => {
-    return files.map(file => {
-      if(file.id === id) {
-        file[key] = value;
-        file.isNew = false;
-      }
+    const newFiles = { ...files };
+    newFiles[id][key] = value;
+    newFiles[id].isNew = false;
 
-      return file;
-    });
+    return newFiles;
   };
 
   const fileChange = (id, value) => {
@@ -83,27 +77,33 @@ function App() {
   };
 
   const deleteFile = (id) => {
-    const newFiles = files.filter(file => file.id !== id);
+    const newFiles = { ...files };
+    delete newFiles[id];
+
     setFiles(newFiles);
     tabClose(id);
   };
 
   const createNewFile = () => {
     const newID = v4();
-    const newFiles = [
+    const newFiles = {
       ...files,
-      {
+      [newID]: {
         id: newID,
         title: '',
         body: '## please input',
         createdAt: new Date().getTime(),
         isNew: true
       }
-    ];
+    };
 
     setFiles(newFiles);
   };
-  const fileListArr = (searchedFiles.length ? searchedFiles : files);
+
+  const openedFiles = openedFileIDs.map(openID => files[openID]);
+
+  const activeFile = files[activeFileID];
+  const fileListArr = (searchedFiles.length ? searchedFiles : filesArr);
 
   return (
     <div className="App container-fluid px-0">
