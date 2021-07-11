@@ -8,7 +8,8 @@ app.on('ready', () => {
         width: 1024,
         height: 680,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true, // web + node
+            contextIsolation: false // 环境不隔离
         }
     });
 

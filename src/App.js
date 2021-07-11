@@ -12,6 +12,8 @@ import BottomBtn from "./components/BottomBtn";
 import TabList from './components/TabList';
 // import Charts from './components/Charts';
 import defaultFiles from "./utils/defaultFiles";
+const fs = window.require('fs');
+console.dir(fs);
 
 function App() {
   const [files, setFiles] = useState(flattenArr(defaultFiles));
