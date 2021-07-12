@@ -1,30 +1,37 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
 const fileHelper = {
-    readFile: (path, cb) => {
-        fs.readFile(path, { encoding: 'utf-8'}, (err, data) => {
-            if (!err) {
-                cb(data);
-            }
-        })
+    readFile: (path) => {
+        return fs.readFile(path, { encoding: 'utf-8'})
     },
-    writeFile: (path, content, cb) => {
-        fs.writeFile(path, content, { encoding: 'utf8' }, (err) => {
-            if(!err) {
-                cb();
-            }
-        })
+    writeFile: (path, content) => {
+        return fs.writeFile(path, content, { encoding: 'utf8' })
+    },
+    renameFile: (path, newPath) => {
+        return fs.rename(path, newPath)
+    },
+    deleteFile: (path) => {
+        return fs.unlink(path);
     }
 };
 
 const testPath = path.join(__dirname, 'helper.js');
 const testWritePath = path.join(__dirname, 'demo.md');
+const renamePath = path.join(__dirname, 'rename.md');
 
-fileHelper.readFile(testPath, (data) => {
+fileHelper.readFile(testPath).then((data) => {
     console.log(data);
 });
 
-fileHelper.writeFile(testWritePath, '## hello world', () => {
+fileHelper.writeFile(testWritePath, '## hello world').then(() => {
     console.log('写入成功');
+});
+
+fileHelper.renameFile(testWritePath, renamePath).then(() => {
+    console.log('rename success!!');
+});
+
+fileHelper.deleteFile(renamePath).then(() => {
+    console.log('删除成功');
 })
