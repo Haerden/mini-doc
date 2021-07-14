@@ -15,6 +15,14 @@ import TabList from './components/TabList';
 import defaultFiles from "./utils/defaultFiles";
 const { join } = window.require('path');
 const {remote} = window.require('electron');
+const Store = window.require('electron-store');
+
+const store = new Store();
+store.set('name', 'Haaa');
+console.log(store.get('name'));
+store.delete('name');
+console.log(store.get('name'));
+
 
 function App() {
   const [files, setFiles] = useState(flattenArr(defaultFiles));
@@ -177,6 +185,7 @@ function App() {
               />
               <BottomBtn
                 text="保存"
+                icon={faFileImport}
                 onClick={saveCurrentfile}
               />
             </>
