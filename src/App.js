@@ -5,6 +5,7 @@ import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { v4 } from 'uuid';
 import { flattenArr, objToArr } from './utils/helper';
+import fileHelper from './utils/fileHelper';
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
@@ -12,8 +13,8 @@ import BottomBtn from "./components/BottomBtn";
 import TabList from './components/TabList';
 // import Charts from './components/Charts';
 import defaultFiles from "./utils/defaultFiles";
-const fs = window.require('fs');
-console.dir(fs);
+const { join } = window.require('path');
+const {remote} = window.require('electron');
 
 function App() {
   const [files, setFiles] = useState(flattenArr(defaultFiles));
@@ -22,6 +23,11 @@ function App() {
   const [unsavedFileIDs, setUnSavedFileIDs] = useState([]);
   const [searchedFiles, setSearchedFiles] = useState([]);
   const filesArr = objToArr(files);
+  const saveLoacation = remote.app.getPath('documents');
+  const openedFiles = openedFileIDs.map(openID => files[openID]);
+
+  const activeFile = files[activeFileID];
+  const fileListArr = (searchedFiles.length ? searchedFiles : filesArr);
 
   const fileSearch = (keyword) => {
     const newFiles = filesArr.filter(file => file.title.includes(keyword));
@@ -72,10 +78,24 @@ function App() {
     }
   };
 
-  const updateFileName = (id, value) => {
+  const updateFileName = (id, value, isNew) => {
     const newFiles = changeFile(id, 'title', value);
 
-    setFiles(newFiles);
+    if(isNew) {
+      fileHelper.writeFile(join(saveLoacation, `${value}.md`), newFiles[id].body).then(() => {
+        setFiles(newFiles);
+      });
+    } else {
+      fileHelper.renameFile(join(saveLoacation, `${files[id].title}.md`),join(saveLoacation, `${value}.md`)).then(() => {
+        setFiles(newFiles);
+      });
+    }
+  };
+
+  const saveCurrentfile = () => {
+    fileHelper.writeFile(join(saveLoacation, `${activeFile.title}.md`), activeFile.body).then(() => {
+      setUnSavedFileIDs(unsavedFileIDs.filter(id => id !== activeFileID));
+    })
   };
 
   const deleteFile = (id) => {
@@ -101,11 +121,6 @@ function App() {
 
     setFiles(newFiles);
   };
-
-  const openedFiles = openedFileIDs.map(openID => files[openID]);
-
-  const activeFile = files[activeFileID];
-  const fileListArr = (searchedFiles.length ? searchedFiles : filesArr);
 
   return (
     <div className="App container-fluid px-0">
@@ -159,6 +174,10 @@ function App() {
                 key={activeFile && activeFile.id}
                 value={activeFile && activeFile.body}
                 onChange={(value) => fileChange(activeFile.id, value)}
+              />
+              <BottomBtn
+                text="保存"
+                onClick={saveCurrentfile}
               />
             </>
           )}

@@ -25,7 +25,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     const editItem = files.find((item) => item.id === editSatus);
 
     if (enterPressed && editSatus && value.trim() !== '') {
-      onSaveEdit(editItem.id, value);
+      onSaveEdit(editItem.id, value, editItem.isNew);
       setEditStatus(false);
       setValue("");
     }
@@ -65,7 +65,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
               </span>
               <button
                 type="button"
-                className="icon-button col-1"
+                className="icon-button col-2"
                 onClick={() => {
                   setEditStatus(file.id);
                   setValue(file.title);

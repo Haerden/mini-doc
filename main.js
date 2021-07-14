@@ -9,7 +9,8 @@ app.on('ready', () => {
         height: 680,
         webPreferences: {
             nodeIntegration: true, // web + node
-            contextIsolation: false // 环境不隔离
+            contextIsolation: false, // 环境不隔离
+            enableRemoteModule: true  // 打开remot
         }
     });
 
