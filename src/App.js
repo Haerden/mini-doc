@@ -52,6 +52,7 @@ function App() {
 
     setSearchedFiles(newFiles);
   };
+
   // fileClick
   const fileClick = (fileID) => {
     setActiveFileID(fileID);
