@@ -14,15 +14,25 @@ import TabList from './components/TabList';
 // import Charts from './components/Charts';
 import defaultFiles from "./utils/defaultFiles";
 const { join } = window.require('path');
-const {remote} = window.require('electron');
+const { remote } = window.require('electron');
 const Store = window.require('electron-store');
 
-const store = new Store();
-store.set('name', 'Haaa');
-console.log(store.get('name'));
-store.delete('name');
-console.log(store.get('name'));
+const fileStore = new Store({ 'name': 'Files Data' });
 
+const saveFilesToStore = (files) => {
+  // dont have to save all info
+  const fileStoreObj = objToArr(files).reduce((result, file) => {
+    const { id, path, title, createdAt } = file;
+    result[id] = {
+      id, path,
+      title, createdAt
+    };
+
+    return result;
+  }, {});
+
+  fileStore.set('files', fileStoreObj);
+};
 
 function App() {
   const [files, setFiles] = useState(flattenArr(defaultFiles));
@@ -68,10 +78,11 @@ function App() {
   };
 
   // title or body
-  const changeFile = (id, key, value) => {
+  const changeFile = (id, key, value, newPath) => {
     const newFiles = { ...files };
     newFiles[id][key] = value;
     newFiles[id].isNew = false;
+    newFiles[id].path = newPath;
 
     return newFiles;
   };
@@ -87,14 +98,15 @@ function App() {
   };
 
   const updateFileName = (id, value, isNew) => {
-    const newFiles = changeFile(id, 'title', value);
+    const newPath = join(saveLoacation, `${value}.md`);
+    const newFiles = changeFile(id, 'title', value, newPath);
 
-    if(isNew) {
-      fileHelper.writeFile(join(saveLoacation, `${value}.md`), newFiles[id].body).then(() => {
+    if (isNew) {
+      fileHelper.writeFile(newPath, newFiles[id].body).then(() => {
         setFiles(newFiles);
       });
     } else {
-      fileHelper.renameFile(join(saveLoacation, `${files[id].title}.md`),join(saveLoacation, `${value}.md`)).then(() => {
+      fileHelper.renameFile(newPath, join(saveLoacation, `${value}.md`)).then(() => {
         setFiles(newFiles);
       });
     }
