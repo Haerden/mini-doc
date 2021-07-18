@@ -4,7 +4,7 @@ import "easymde/dist/easymde.min.css";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { v4 } from 'uuid';
-import { flattenArr, objToArr } from './utils/helper';
+import { objToArr } from './utils/helper';
 import fileHelper from './utils/fileHelper';
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
@@ -12,7 +12,6 @@ import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
 import TabList from './components/TabList';
 // import Charts from './components/Charts';
-import defaultFiles from "./utils/defaultFiles";
 const { join } = window.require('path');
 const { remote } = window.require('electron');
 const Store = window.require('electron-store');
@@ -24,8 +23,10 @@ const saveFilesToStore = (files) => {
   const fileStoreObj = objToArr(files).reduce((result, file) => {
     const { id, path, title, createdAt } = file;
     result[id] = {
-      id, path,
-      title, createdAt
+      id, 
+      path,
+      title, 
+      createdAt
     };
 
     return result;
@@ -35,7 +36,7 @@ const saveFilesToStore = (files) => {
 };
 
 function App() {
-  const [files, setFiles] = useState(flattenArr(defaultFiles));
+  const [files, setFiles] = useState(fileStore.get('files') || {});
   const [activeFileID, setActiveFileID] = useState('');
   const [openedFileIDs, setOpenedFileIds] = useState([]);
   const [unsavedFileIDs, setUnSavedFileIDs] = useState([]);
@@ -78,16 +79,6 @@ function App() {
     }
   };
 
-  // title or body
-  const changeFile = (id, key, value, newPath) => {
-    const newFiles = { ...files };
-    newFiles[id][key] = value;
-    newFiles[id].isNew = false;
-    newFiles[id].path = newPath;
-
-    return newFiles;
-  };
-
   const fileChange = (id, value) => {
     const newFiles = changeFile(id, 'body', value);
 
@@ -98,17 +89,33 @@ function App() {
     }
   };
 
+  // 修改指定id 的 文件的 [key, value], 并更新path
+  const changeFile = (id, key, value, newPath) => {
+    const newFiles = { ...files };
+    newFiles[id][key] = value;
+    newFiles[id].isNew = false;
+    newFiles[id].path = newPath;
+
+    return newFiles;
+  };
+
+  // 新建或者修改文件
   const updateFileName = (id, value, isNew) => {
+    const oldPath = join(saveLoacation, `${files[id].title}.md`);
     const newPath = join(saveLoacation, `${value}.md`);
     const newFiles = changeFile(id, 'title', value, newPath);
 
     if (isNew) {
       fileHelper.writeFile(newPath, newFiles[id].body).then(() => {
         setFiles(newFiles);
+        // 持久化
+        saveFilesToStore(newFiles);
       });
     } else {
-      fileHelper.renameFile(newPath, join(saveLoacation, `${value}.md`)).then(() => {
+      fileHelper.renameFile(oldPath, newPath).then(() => {
         setFiles(newFiles);
+        // 持久化
+        saveFilesToStore(newFiles);
       });
     }
   };
@@ -119,12 +126,15 @@ function App() {
     })
   };
 
+  // 删除文件
   const deleteFile = (id) => {
-    const newFiles = { ...files };
-    delete newFiles[id];
-
-    setFiles(newFiles);
-    tabClose(id);
+    fileHelper.deleteFile(files[id].path).then(() => {
+      const newFiles = { ...files };
+      delete newFiles[id];
+      setFiles(newFiles);
+      tabClose(id);
+      saveFilesToStore(newFiles);
+    });
   };
 
   const createNewFile = () => {
