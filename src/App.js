@@ -1,56 +1,54 @@
-import { useState } from 'react';
-import SimpleMDE from 'react-simplemde-editor';
+import { useState } from "react";
+import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { v4 } from 'uuid';
-import { objToArr } from './utils/helper';
-import fileHelper from './utils/fileHelper';
+import { v4 } from "uuid";
+import { objToArr } from "./utils/helper";
+import fileHelper from "./utils/fileHelper";
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
-import TabList from './components/TabList';
+import TabList from "./components/TabList";
 // import Charts from './components/Charts';
-const { join } = window.require('path');
-const { remote } = window.require('electron');
-const Store = window.require('electron-store');
+const { join } = window.require("path");
+const { remote } = window.require("electron");
+const Store = window.require("electron-store");
 
-const fileStore = new Store({ 'name': 'Files Data' });
+const fileStore = new Store({ name: "Files Data" });
 
 const saveFilesToStore = (files) => {
   // dont have to save all info
   const fileStoreObj = objToArr(files).reduce((result, file) => {
     const { id, path, title, createdAt } = file;
     result[id] = {
-      id, 
+      id,
       path,
-      title, 
-      createdAt
+      title,
+      createdAt,
     };
 
     return result;
   }, {});
 
-  fileStore.set('files', fileStoreObj);
+  fileStore.set("files", fileStoreObj);
 };
 
 function App() {
-  const [files, setFiles] = useState(fileStore.get('files') || {});
-  const [activeFileID, setActiveFileID] = useState('');
+  const [files, setFiles] = useState(fileStore.get("files") || {});
+  const [activeFileID, setActiveFileID] = useState("");
   const [openedFileIDs, setOpenedFileIds] = useState([]);
   const [unsavedFileIDs, setUnSavedFileIDs] = useState([]);
   const [searchedFiles, setSearchedFiles] = useState([]);
   const filesArr = objToArr(files);
-  const saveLoacation = remote.app.getPath('documents');
-  console.log(saveLoacation);
-  const openedFiles = openedFileIDs.map(openID => files[openID]);
-
+  const saveLoacation = remote.app.getPath("documents");
+  const openedFiles = openedFileIDs.map((openID) => files[openID]);
   const activeFile = files[activeFileID];
-  const fileListArr = (searchedFiles.length ? searchedFiles : filesArr);
+  const fileListArr = searchedFiles.length ? searchedFiles : filesArr;
 
   const fileSearch = (keyword) => {
-    const newFiles = filesArr.filter(file => file.title.includes(keyword));
+    const newFiles = filesArr.filter((file) => file.title.includes(keyword));
 
     setSearchedFiles(newFiles);
   };
@@ -60,16 +58,21 @@ function App() {
     setActiveFileID(fileID);
     const currentFile = files[fileID];
     if (!currentFile.isLoaded) {
-      fileHelper.readFile(currentFile.path).then(value => {
-        const newFile = {
-          ...files[fileID],
-          body: value,
-          isLoaded: true
-        };
-        console.log(currentFile.path,value);
-        setFiles({ ...files, [fileID]: newFile});
-      });
-    } 
+      fileHelper
+        .readFile(currentFile.path)
+        .then((value) => {
+          const newFile = {
+            ...files[fileID],
+            body: value,
+            isLoaded: true,
+          };
+          console.log(currentFile.path, value);
+          setFiles({ ...files, [fileID]: newFile });
+        })
+        .catch(() => {
+          // TODO 文件已不存在
+        });
+    }
     // openedFileIDs dont have fileID add
     if (!openedFileIDs.includes(fileID)) {
       setOpenedFileIds([...openedFileIDs, fileID]);
@@ -81,19 +84,19 @@ function App() {
   };
 
   const tabClose = (id) => {
-    const tabsWithout = openedFileIDs.filter(fileID => id !== fileID);
+    const tabsWithout = openedFileIDs.filter((fileID) => id !== fileID);
 
     setOpenedFileIds(tabsWithout);
 
     if (tabsWithout.length > 0) {
       setActiveFileID(tabsWithout[0]);
     } else {
-      setActiveFileID('');
+      setActiveFileID("");
     }
   };
 
   const fileChange = (id, value) => {
-    const newFiles = changeFile(id, 'body', value);
+    const newFiles = changeFile(id, "body", value);
 
     setFiles(newFiles);
     // update unsavedIDs
@@ -116,7 +119,7 @@ function App() {
   const updateFileName = (id, value, isNew) => {
     const oldPath = join(saveLoacation, `${files[id].title}.md`);
     const newPath = join(saveLoacation, `${value}.md`);
-    const newFiles = changeFile(id, 'title', value, newPath);
+    const newFiles = changeFile(id, "title", value, newPath);
 
     if (isNew) {
       fileHelper.writeFile(newPath, newFiles[id].body).then(() => {
@@ -134,20 +137,39 @@ function App() {
   };
 
   const saveCurrentfile = () => {
-    fileHelper.writeFile(join(saveLoacation, `${activeFile.title}.md`), activeFile.body).then(() => {
-      setUnSavedFileIDs(unsavedFileIDs.filter(id => id !== activeFileID));
-    })
+    fileHelper
+      .writeFile(join(saveLoacation, `${activeFile.title}.md`), activeFile.body)
+      .then(() => {
+        setUnSavedFileIDs(unsavedFileIDs.filter((id) => id !== activeFileID));
+      });
   };
 
   // 删除文件
   const deleteFile = (id) => {
-    fileHelper.deleteFile(files[id].path).then(() => {
-      const newFiles = { ...files };
-      delete newFiles[id];
-      setFiles(newFiles);
-      tabClose(id);
-      saveFilesToStore(newFiles);
-    });
+    if (files[id].isNew) {
+      // const newFiles = { ...files };
+      // delete newFiles[id];
+      // spread 语法
+      const { [id]: value, ...afterDeleteFiles } = files;
+      setFiles(afterDeleteFiles);
+
+      return;
+    }
+
+    fileHelper
+      .deleteFile(files[id].path)
+      .then(() => {
+        const { [id]: value, ...afterDeleteFiles } = files;
+        tabClose(id);
+        setFiles(afterDeleteFiles);
+        saveFilesToStore(afterDeleteFiles);
+      })
+      .catch(() => {
+        const { [id]: value, ...afterDeleteFiles } = files;
+        tabClose(id);
+        setFiles(afterDeleteFiles);
+        saveFilesToStore(afterDeleteFiles);
+      });
   };
 
   const createNewFile = () => {
@@ -156,11 +178,11 @@ function App() {
       ...files,
       [newID]: {
         id: newID,
-        title: '',
-        body: '## please input',
+        title: "",
+        body: "## please input",
         createdAt: new Date().getTime(),
-        isNew: true
-      }
+        isNew: true,
+      },
     };
 
     setFiles(newFiles);
@@ -170,10 +192,7 @@ function App() {
     <div className="App container-fluid px-0">
       <div className="row g-0">
         <div className="col-4 left-panel">
-          <FileSearch
-            title="我的策略"
-            onFileSearch={fileSearch}
-          />
+          <FileSearch title="我的策略" onFileSearch={fileSearch} />
           {/* <Charts /> */}
           <FileList
             files={fileListArr}
@@ -196,19 +215,18 @@ function App() {
                 text="Import"
                 colorClass="btn-success"
                 icon={faFileImport}
-                onClick={() => { }}
+                onClick={() => {}}
               />
             </div>
           </div>
         </div>
         <div className="col-8 right-panel">
           {!activeFileID ? (
-            <div className="start-page">
-              choose or create file
-            </div>
+            <div className="start-page">choose or create file</div>
           ) : (
             <>
-              <TabList files={openedFiles}
+              <TabList
+                files={openedFiles}
                 activeId={activeFileID}
                 unsaveIds={unsavedFileIDs}
                 onTabClick={tabClick}
@@ -226,7 +244,6 @@ function App() {
               />
             </>
           )}
-
         </div>
       </div>
     </div>
