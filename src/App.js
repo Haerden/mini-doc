@@ -43,6 +43,7 @@ function App() {
   const [searchedFiles, setSearchedFiles] = useState([]);
   const filesArr = objToArr(files);
   const saveLoacation = remote.app.getPath('documents');
+  console.log(saveLoacation);
   const openedFiles = openedFileIDs.map(openID => files[openID]);
 
   const activeFile = files[activeFileID];
@@ -57,6 +58,18 @@ function App() {
   // fileClick
   const fileClick = (fileID) => {
     setActiveFileID(fileID);
+    const currentFile = files[fileID];
+    if (!currentFile.isLoaded) {
+      fileHelper.readFile(currentFile.path).then(value => {
+        const newFile = {
+          ...files[fileID],
+          body: value,
+          isLoaded: true
+        };
+        console.log(currentFile.path,value);
+        setFiles({ ...files, [fileID]: newFile});
+      });
+    } 
     // openedFileIDs dont have fileID add
     if (!openedFileIDs.includes(fileID)) {
       setOpenedFileIds([...openedFileIDs, fileID]);
