@@ -10,7 +10,7 @@ app.on('ready', () => {
         webPreferences: {
             nodeIntegration: true, // web + node
             contextIsolation: false, // 环境不隔离
-            enableRemoteModule: true  // 打开remot
+            enableRemoteModule: true  // 打开remote
         }
     });
 

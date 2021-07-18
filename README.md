@@ -1,3 +1,5 @@
+# 7.16
+add husky commitlint
 # 7.14
 use fileHelper & add electron-store
 # 7.13
