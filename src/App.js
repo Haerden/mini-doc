@@ -12,7 +12,7 @@ import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
 import TabList from "./components/TabList";
 // import Charts from './components/Charts';
-const { join, basename, extname } = window.require("path");
+const { join, basename, extname, dirname } = window.require("path");
 const { remote } = window.require("electron");
 const Store = window.require("electron-store");
 
@@ -21,6 +21,7 @@ const fileStore = new Store({ name: "Files Data" });
 const saveFilesToStore = (files) => {
   // dont have to save all info
   const fileStoreObj = objToArr(files).reduce((result, file) => {
+    // 过滤file 信息
     const { id, path, title, createdAt } = file;
     result[id] = {
       id,
@@ -66,7 +67,6 @@ function App() {
             body: value,
             isLoaded: true,
           };
-          console.log(currentFile.path, value);
           setFiles({ ...files, [fileID]: newFile });
         })
         .catch(() => {
@@ -110,15 +110,15 @@ function App() {
     const newFiles = { ...files };
     newFiles[id][key] = value;
     newFiles[id].isNew = false;
-    newFiles[id].path = newPath;
+    newPath && (newFiles[id].path = newPath);
 
     return newFiles;
   };
 
   // 新建或者修改文件
   const updateFileName = (id, value, isNew) => {
-    const oldPath = join(saveLoacation, `${files[id].title}.md`);
-    const newPath = join(saveLoacation, `${value}.md`);
+    const oldPath = files[id].path;
+    const newPath = isNew ? join(saveLoacation, `${value}.md`) : join(dirname(files[id].path), `${value}.md`);
     const newFiles = changeFile(id, "title", value, newPath);
 
     if (isNew) {
@@ -138,7 +138,7 @@ function App() {
 
   const saveCurrentfile = () => {
     fileHelper
-      .writeFile(join(saveLoacation, `${activeFile.title}.md`), activeFile.body)
+      .writeFile(activeFile.path, activeFile.body)
       .then(() => {
         setUnSavedFileIDs(unsavedFileIDs.filter((id) => id !== activeFileID));
       });
@@ -196,7 +196,6 @@ function App() {
         {name: 'Markdown Files', extensions: ['md']}
       ]
     }).then(({filePaths}) =>{
-      console.log(filePaths);
       if(Array.isArray(filePaths)) {
         // 防止重复插入-过滤
         const filterPaths = filePaths.filter(filePath => {
@@ -214,8 +213,6 @@ function App() {
           }
         });
 
-        console.log(importFiles);
-
         // Array to Obj
         const newFiles = {
           ...files,
@@ -225,10 +222,11 @@ function App() {
         // setfile and update store
         setFiles(newFiles);
         saveFilesToStore(newFiles);
+        debugger;
         if (importFiles.length > 0) {
           remote.dialog.showMessageBox({
             type: 'info',
-            title: `成功导入了${importFiles.length}个文件。`
+            message: `成功导入了${importFiles.length}个文件。`
           })
         }
       }
