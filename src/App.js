@@ -4,7 +4,7 @@ import "easymde/dist/easymde.min.css";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { v4 } from "uuid";
-import { objToArr } from "./utils/helper";
+import { flattenArr, objToArr } from "./utils/helper";
 import fileHelper from "./utils/fileHelper";
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
@@ -12,7 +12,7 @@ import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
 import TabList from "./components/TabList";
 // import Charts from './components/Charts';
-const { join } = window.require("path");
+const { join, basename, extname } = window.require("path");
 const { remote } = window.require("electron");
 const Store = window.require("electron-store");
 
@@ -188,6 +188,53 @@ function App() {
     setFiles(newFiles);
   };
 
+  const importFiles = () => {
+    remote.dialog.showOpenDialog({
+      title: '选择导入的 MarkDown 文件',
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        {name: 'Markdown Files', extensions: ['md']}
+      ]
+    }).then(({filePaths}) =>{
+      console.log(filePaths);
+      if(Array.isArray(filePaths)) {
+        // 防止重复插入-过滤
+        const filterPaths = filePaths.filter(filePath => {
+          const alreadyAdded = Object.values(files).find(file => file.path === filePath);
+
+          return !alreadyAdded;
+        });
+
+        // 扩展数组
+        const importFiles = filterPaths.map((path) => {
+          return {
+            id: v4(),
+            title: basename(path, extname(path)),
+            path
+          }
+        });
+
+        console.log(importFiles);
+
+        // Array to Obj
+        const newFiles = {
+          ...files,
+          ...flattenArr(importFiles)
+        };
+
+        // setfile and update store
+        setFiles(newFiles);
+        saveFilesToStore(newFiles);
+        if (importFiles.length > 0) {
+          remote.dialog.showMessageBox({
+            type: 'info',
+            title: `成功导入了${importFiles.length}个文件。`
+          })
+        }
+      }
+    })
+  };
+
   return (
     <div className="App container-fluid px-0">
       <div className="row g-0">
@@ -215,7 +262,7 @@ function App() {
                 text="Import"
                 colorClass="btn-success"
                 icon={faFileImport}
-                onClick={() => {}}
+                onClick={importFiles}
               />
             </div>
           </div>
