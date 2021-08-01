@@ -213,16 +213,16 @@ function App() {
           }
         });
 
-        // Array to Obj
+        // 合并新老文件，Array to Obj
         const newFiles = {
           ...files,
           ...flattenArr(importFiles)
         };
 
-        // setfile and update store
+        // setFiles and update store
         setFiles(newFiles);
         saveFilesToStore(newFiles);
-        debugger;
+
         if (importFiles.length > 0) {
           remote.dialog.showMessageBox({
             type: 'info',
