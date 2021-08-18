@@ -11,7 +11,7 @@ import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
 import TabList from "./components/TabList";
-// import Charts from './components/Charts';
+import useIpcRenderer from './hooks/useIpcRenderer'
 const { join, basename, extname, dirname } = window.require("path");
 const { remote } = window.require("electron");
 const Store = window.require("electron-store");
@@ -193,10 +193,10 @@ function App() {
       title: '选择导入的 MarkDown 文件',
       properties: ['openFile', 'multiSelections'],
       filters: [
-        {name: 'Markdown Files', extensions: ['md']}
+        { name: 'Markdown Files', extensions: ['md'] }
       ]
-    }).then(({filePaths}) =>{
-      if(Array.isArray(filePaths)) {
+    }).then(({ filePaths }) => {
+      if (Array.isArray(filePaths)) {
         // 防止重复插入-过滤
         const filterPaths = filePaths.filter(filePath => {
           const alreadyAdded = Object.values(files).find(file => file.path === filePath);
@@ -233,12 +233,18 @@ function App() {
     })
   };
 
+  useIpcRenderer({
+    'create-new-file': createNewFile,
+    'import-file': importFiles,
+    'save-edit-file': saveCurrentfile
+  });
+
   return (
     <div className="App container-fluid px-0">
       <div className="row g-0">
         <div className="col-4 left-panel">
           <FileSearch title="我的策略" onFileSearch={fileSearch} />
-          {/* <Charts /> */}
+
           <FileList
             files={fileListArr}
             onFileClick={fileClick}
@@ -281,11 +287,6 @@ function App() {
                 key={activeFile && activeFile.id}
                 value={activeFile && activeFile.body}
                 onChange={(value) => fileChange(activeFile.id, value)}
-              />
-              <BottomBtn
-                text="保存"
-                icon={faFileImport}
-                onClick={saveCurrentfile}
               />
             </>
           )}
