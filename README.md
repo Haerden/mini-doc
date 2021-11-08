@@ -1,3 +1,6 @@
+# 11.06
+add Qiniu
+
 # 8.18
 add system menu bar
 

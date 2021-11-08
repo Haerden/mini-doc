@@ -22,19 +22,34 @@ class QiniuManager {
 
         const formUploader = new qiniu.form_up.FormUploader(this.config);
         const putExtra = new qiniu.form_up.PutExtra();
+        
+        // 文件上传
+        return new Promise((resolve, reject) => {
+            formUploader.putFile(uploadToken, key, localFilePath, putExtra, this.handleCallBack(resolve, reject))
+        });  
+    }
 
-        formUploader.putFile(uploadToken, key, localFilePath, putExtra, function (respErr, respBody, respInfo) {
+    deleteFile(key) {
+        return new Promise((resolve, reject) => {
+            this.bucketManager.delete(this.bucket, key, this.handleCallBack(resolve, reject));
+        });
+    }
+
+    handleCallBack(resolve, reject) {
+        return (respErr, respBody, respInfo) => {
             if (respErr) {
                 throw respErr;
             }
-
+    
             if (respInfo.statusCode === 200) {
-                console.log(respBody);
+                resolve(respBody);
             } else {
-                console.log(respInfo.statusCode);
-                console.log(respBody);
+                reject({
+                    statusCode: respInfo.statusCode,
+                    body: respBody
+                });
             }
-        });
+        }
     }
 }
 
