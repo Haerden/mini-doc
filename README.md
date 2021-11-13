@@ -1,3 +1,5 @@
+# 11.13
+add Settings Qiniu
 # 11.06
 add Qiniu
 
