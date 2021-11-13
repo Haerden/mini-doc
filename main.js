@@ -2,6 +2,9 @@ const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
 const isDev = require('electron-is-dev');
 const menuTemplate = require('./src/menuTemplate');
+const Store = require('electron-store');
+const settingsStore = new Store({ name: 'Settings' });
+
 let mainWindow, setttingsWindow;
 
 const AppWindow = require('./src/AppWindow');
@@ -25,6 +28,10 @@ app.on('ready', () => {
         mainWindow = null;
     });
 
+    // set the menu
+    let menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+
     // hook up main events
     ipcMain.on('open-settings-window', () => {
         const setttingsWindowConfig = {
@@ -42,7 +49,21 @@ app.on('ready', () => {
         });
     });
 
-    // set the menu
-    const menu = Menu.buildFromTemplate(menuTemplate);
-    Menu.setApplicationMenu(menu);
+    ipcMain.on('config-is-saved', () => {
+        // 注意 index
+        let qiniuMenu = process.platform === 'darwin' ? menu.items[3] : menu.items[2];
+        const switchItems = (toggle) => {
+            [1,2,3].forEach(number => {
+                qiniuMenu.submenu.items[number].enabled = toggle;
+            })
+        };
+        
+        const qiniuIsConfiged = ['accessKey', 'secretKey', 'bucketName'].every(key => !!settingsStore.get(key));
+        if (qiniuIsConfiged) {
+            switchItems(true);
+        } else {
+            switchItems(false);
+        }
+    });
+
 });

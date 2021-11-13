@@ -4,60 +4,62 @@ const settingsStore = new Store({ name: 'Settings' });
 const qiniuConfigArr = ['#savedFileLocation', '#accessKey', '#secretKey', '#bucketName'];
 
 const $ = (selector) => {
-  const result = document.querySelectorAll(selector);
-  return result.length > 1 ? result : result[0];
+	const result = document.querySelectorAll(selector);
+	return result.length > 1 ? result : result[0];
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // get the saved config and fill in the input
-  qiniuConfigArr.forEach(selector => {
-    const savedValue = settingsStore.get(selector.substring(1));
+	// get the saved config and fill in the input
+	qiniuConfigArr.forEach(selector => {
+		const savedValue = settingsStore.get(selector.substring(1));
 
-    if (savedValue) {
-      $(selector).value = savedValue;
-    }
-  })
-  $('#select-new-location').addEventListener('click', () => {
-    remote.dialog.showOpenDialog({
-      properties: ['openDirectory'],
-      message: '选择文件的存储路径',
-    }).then((filePaths) => {
-      if (Array.isArray(filePaths.filePaths)) {
-        $('#savedFileLocation').value = filePaths.filePaths[0];
-      }
-    });
-  });
+		if (savedValue) {
+			$(selector).value = savedValue;
+		}
+	})
+	$('#select-new-location').addEventListener('click', () => {
+		remote.dialog.showOpenDialog({
+			properties: ['openDirectory'],
+			message: '选择文件的存储路径',
+		}).then((filePaths) => {
+			if (Array.isArray(filePaths.filePaths)) {
+				$('#savedFileLocation').value = filePaths.filePaths[0];
+			}
+		});
+	});
 
-  // 存储路径
-  $('#settings-form').addEventListener('submit', (e) => {
-    e.preventDefault();
+	// 存储路径
+	$('#settings-form').addEventListener('submit', (e) => {
+		e.preventDefault();
 
-    qiniuConfigArr.forEach(selector => {
-      if ($(selector)) {
-        let { id, value } = $(selector);
+		qiniuConfigArr.forEach(selector => {
+			if ($(selector)) {
+				let { id, value } = $(selector);
 
-        settingsStore.set(id, value ? value : '');
-      }
-    });
-  
+				settingsStore.set(id, value ? value : '');
+			}
+		});
 
-    remote.getCurrentWindow().close()
-  });
+		// sent a event to main process to enable menu items if qiniu is saved
+		ipcRenderer.send('config-is-saved');
 
-  // tabs 点击
-  $('.nav-tabs').addEventListener('click', (e) => {
-    e.preventDefault();
+		remote.getCurrentWindow().close()
+	});
 
-    $('.nav-link').forEach(element => {
-      element.classList.remove('active');
-    });
+	// tabs 点击
+	$('.nav-tabs').addEventListener('click', (e) => {
+		e.preventDefault();
 
-    e.target.classList.add('active');
+		$('.nav-link').forEach(element => {
+			element.classList.remove('active');
+		});
 
-    $('.config-area').forEach(element => {
-      element.style.display = 'none'
-    });
+		e.target.classList.add('active');
 
-    $(e.target.dataset.tab).style.display = 'block';
-  });
+		$('.config-area').forEach(element => {
+			element.style.display = 'none'
+		});
+
+		$(e.target.dataset.tab).style.display = 'block';
+	});
 })
