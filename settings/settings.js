@@ -1,6 +1,7 @@
 const { remote, ipcRenderer } = require('electron');
 const Store = require('electron-store');
 const settingsStore = new Store({ name: 'Settings' });
+const qiniuConfigArr = ['#savedFileLocation', '#accessKey', '#secretKey', '#bucketName'];
 
 const $ = (selector) => {
   const result = document.querySelectorAll(selector);
@@ -8,12 +9,14 @@ const $ = (selector) => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  let savedLocation = settingsStore.get('savedFileLocation');
+  // get the saved config and fill in the input
+  qiniuConfigArr.forEach(selector => {
+    const savedValue = settingsStore.get(selector.substring(1));
 
-  if (savedLocation) {
-    $('#savedFileLocation').value = savedLocation;
-  }
-
+    if (savedValue) {
+      $(selector).value = savedValue;
+    }
+  })
   $('#select-new-location').addEventListener('click', () => {
     remote.dialog.showOpenDialog({
       properties: ['openDirectory'],
@@ -21,23 +24,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }).then((filePaths) => {
       if (Array.isArray(filePaths.filePaths)) {
         $('#savedFileLocation').value = filePaths.filePaths[0];
-
-        savedLocation = filePaths.filePaths[0];
       }
     });
   });
 
+  // 存储路径
   $('#settings-form').addEventListener('submit', (e) => {
     e.preventDefault();
 
-    settingsStore.set('savedFileLocation', savedLocation);
+    qiniuConfigArr.forEach(selector => {
+      if ($(selector)) {
+        let { id, value } = $(selector);
+
+        settingsStore.set(id, value ? value : '');
+      }
+    });
+  
+
     remote.getCurrentWindow().close()
   });
 
+  // tabs 点击
   $('.nav-tabs').addEventListener('click', (e) => {
-    e.preventDefault()
+    e.preventDefault();
+
     $('.nav-link').forEach(element => {
-      element.classList.remove('active')
+      element.classList.remove('active');
     });
 
     e.target.classList.add('active');
