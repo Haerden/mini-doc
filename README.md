@@ -1,3 +1,5 @@
+# 11.14
+add file upload to qiniu
 # 11.13
 add Settings Qiniu
 # 11.06

@@ -1,11 +1,20 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 const isDev = require('electron-is-dev');
 const menuTemplate = require('./src/menuTemplate');
 const Store = require('electron-store');
+const QiniuManager = require('./src/utils/QiniuManager');
 const settingsStore = new Store({ name: 'Settings' });
 
 let mainWindow, setttingsWindow;
+
+const createManager = () => {
+    const accessKey = settingsStore.get('accessKey');
+    const secretKey = settingsStore.get('secretKey');
+    const bucketName = settingsStore.get('bucketName');
+
+    return new QiniuManager(accessKey, secretKey, bucketName);
+};
 
 const AppWindow = require('./src/AppWindow');
 
@@ -66,4 +75,13 @@ app.on('ready', () => {
         }
     });
 
-});
+    ipcMain.on('upload-file', (event, data) => {
+        const manager = createManager();
+        manager.uploadFile(data.key, data.path).then(data => {
+            console.log('上传成功', data);
+            mainWindow.webContents.send('active-file-uploaded');
+        }).catch(() => {
+            dialog.showErrorBox('同步失败', '请检查七牛云参数');
+        });
+    });
+}); 

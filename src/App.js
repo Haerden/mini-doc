@@ -4,7 +4,7 @@ import "easymde/dist/easymde.min.css";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { v4 } from "uuid";
-import { flattenArr, objToArr } from "./utils/helper";
+import { flattenArr, objToArr, timestampToString } from "./utils/helper";
 import fileHelper from "./utils/fileHelper";
 import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
@@ -13,23 +13,26 @@ import BottomBtn from "./components/BottomBtn";
 import TabList from "./components/TabList";
 import useIpcRenderer from './hooks/useIpcRenderer'
 const { join, basename, extname, dirname } = window.require("path");
-const { remote } = window.require("electron");
+const { remote, ipcRenderer } = window.require("electron");
 const Store = window.require("electron-store");
 
 const fileStore = new Store({ name: "Files Data" });
 const settingsStore = new Store({ name: 'Settings' });
+const getAutoSync = () => ['accessKey', 'secretKey', 'bucketName', 'enableAutoSync'].every(key => !!settingsStore.get(key));
 
 const saveFilesToStore = (files) => {
   // dont have to save all info
   const fileStoreObj = objToArr(files).reduce((result, file) => {
     // 过滤file 信息
-    const { id, path, title, createdAt } = file;
+    const { id, path, title, createdAt, isSynced, updatedAt } = file;
     result[id] = {
       id,
       path,
       title,
       createdAt,
-    }; 
+      isSynced,
+      updatedAt
+    };
 
     return result;
   }, {});
@@ -138,10 +141,19 @@ function App() {
   };
 
   const saveCurrentfile = () => {
+    const { path, body, title } = activeFile;
+
     fileHelper
-      .writeFile(activeFile.path, activeFile.body)
+      .writeFile(path, body)
       .then(() => {
         setUnSavedFileIDs(unsavedFileIDs.filter((id) => id !== activeFileID));
+
+        if(getAutoSync()) {
+          ipcRenderer.send('upload-file', {
+            key: `${title}.md`,
+            path
+          });
+        }
       });
   };
 
@@ -234,10 +246,22 @@ function App() {
     })
   };
 
+  const activeFileUploaded = () => {
+    const { id } = activeFile;
+    const modifiedFile = {
+      ...files[id], isSynced: true, updatedAt: new Date().getTime()
+    }; 
+    const newFiles = { ...files, [id]: modifiedFile };
+    debugger;
+    setFiles(newFiles);
+    saveFilesToStore(newFiles);
+  };
+
   useIpcRenderer({
     'create-new-file': createNewFile,
     'import-file': importFiles,
-    'save-edit-file': saveCurrentfile
+    'save-edit-file': saveCurrentfile,
+    'active-file-uploaded': activeFileUploaded
   });
 
   return (
@@ -289,6 +313,10 @@ function App() {
                 value={activeFile && activeFile.body}
                 onChange={(value) => fileChange(activeFile.id, value)}
               />
+              {
+                activeFile.isSynced && 
+                <span className="sync-status">已同步，上次同步{timestampToString(activeFile.updatedAt)}</span>
+              }
             </>
           )}
         </div>

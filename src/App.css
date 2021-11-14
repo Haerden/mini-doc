@@ -36,8 +36,9 @@ body {
 }
 
 .CodeMirror-scroll {
-  height: 600px !important;
+  height: 500px !important;
 }
+
 .sync-status {
   font-size: 12px;
   color: #959694;
