@@ -5,6 +5,7 @@ const menuTemplate = require('./src/menuTemplate');
 const Store = require('electron-store');
 const QiniuManager = require('./src/utils/QiniuManager');
 const settingsStore = new Store({ name: 'Settings' });
+const fileStore = new Store({ name: "Files Data" });
 
 let mainWindow, setttingsWindow;
 
@@ -82,6 +83,43 @@ app.on('ready', () => {
             mainWindow.webContents.send('active-file-uploaded');
         }).catch(() => {
             dialog.showErrorBox('同步失败', '请检查七牛云参数');
+        });
+    });
+
+    ipcMain.on('download-file', (event, data) => {
+        const manager = createManager();
+        const filesObj = fileStore.get('files');
+        const { key, path, id } = data;
+
+        manager.getStat(data.key).then((resp) => {
+            // console.log(resp);
+            // console.log(filesObj[data.id]);
+            const serverUpdatedTime = Math.round(resp.putTime / 10000);
+            const localUpdatedTime = filesObj[id].updatedAt
+            if (serverUpdatedTime > localUpdatedTime || !localUpdatedTime) {
+                console.log('同步成功');
+                manager.downloadFile(key, path).then(() => {
+                    mainWindow.webContents.send('file-downloaded', {
+                        status: 'download-success',
+                        id
+                    })
+                })
+            } else {
+                console.log('使用本地');
+                mainWindow.webContents.send('file-downloaded', {
+                    status: 'no-new-file',
+                    id
+                })
+            }
+
+        }, err => {
+            console.log(err);
+            if (err.statusCode === 612) {
+                mainWindow.webContents.send('file-downloaded', {
+                    status: 'no-file',
+                    id
+                })
+            }
         });
     });
 }); 

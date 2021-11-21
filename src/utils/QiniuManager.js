@@ -85,6 +85,11 @@ class QiniuManager {
         });
     }
 
+    getStat(key) {
+        return new Promise((resolve, reject) => {
+            this.bucketManager.stat(this.bucket, key, this.handleCallBack(resolve, reject));
+        });
+    }
     handleCallBack(resolve, reject) {
         return (respErr, respBody, respInfo) => {
             if (respErr) {
