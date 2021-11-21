@@ -122,4 +122,11 @@ app.on('ready', () => {
             }
         });
     });
+    ipcMain.on('upload-all-to-qiniu', () => {
+        mainWindow.webContents.send('loading-status', true);
+
+        setTimeout(() => {
+            mainWindow.webContents.send('loading-status', false);
+        }, 1000);
+    });
 }); 

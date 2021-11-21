@@ -10,6 +10,7 @@ import { faPlus, faFileImport } from "@fortawesome/free-solid-svg-icons";
 import FileSearch from "./components/FileSearch";
 import FileList from "./components/FileList";
 import BottomBtn from "./components/BottomBtn";
+import Loader from './components/Loader';
 import TabList from "./components/TabList";
 import useIpcRenderer from './hooks/useIpcRenderer'
 const { join, basename, extname, dirname } = window.require("path");
@@ -46,6 +47,7 @@ function App() {
 	const [openedFileIDs, setOpenedFileIds] = useState([]);
 	const [unsavedFileIDs, setUnSavedFileIDs] = useState([]);
 	const [searchedFiles, setSearchedFiles] = useState([]);
+	const [isLoading, setLoading] = useState(false);
 	const filesArr = objToArr(files);
 	const saveLoacation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents');
 	const openedFiles = openedFileIDs.map((openID) => files[openID]);
@@ -305,11 +307,13 @@ function App() {
 		'import-file': importFiles,
 		'save-edit-file': saveCurrentfile,
 		'active-file-uploaded': activeFileUploaded,
-		'file-downloaded': activeFileDownloaded
+		'file-downloaded': activeFileDownloaded,
+		'loading-status': (e, status) => { setLoading(status); }
 	});
 
 	return (
 		<div className="App container-fluid px-0">
+			{isLoading && <Loader text='download...' />}
 			<div className="row g-0">
 				<div className="col-4 left-panel">
 					<FileSearch title="我的策略" onFileSearch={fileSearch} />
