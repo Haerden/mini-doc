@@ -302,13 +302,30 @@ function App() {
 		});
 	};
 
+	const filesUploaded = () => {
+		const newFiles = objToArr(files).reduce((result, file) => {
+			const currentTime = new Date().getTime();
+			result[file.id] = {
+				...files[file.id],
+				isSynced: true,
+				updatedAt: currentTime
+			};
+
+			return result;
+		}, {});
+
+		setFiles(newFiles);
+		saveFilesToStore(newFiles);
+	};
+
 	useIpcRenderer({
 		'create-new-file': createNewFile,
 		'import-file': importFiles,
 		'save-edit-file': saveCurrentfile,
 		'active-file-uploaded': activeFileUploaded,
 		'file-downloaded': activeFileDownloaded,
-		'loading-status': (e, status) => { setLoading(status); }
+		'loading-status': (e, status) => { setLoading(status); },
+		'files-uploaded': filesUploaded
 	});
 
 	return (

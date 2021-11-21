@@ -122,11 +122,29 @@ app.on('ready', () => {
             }
         });
     });
+
+    // 全部同步至云端
     ipcMain.on('upload-all-to-qiniu', () => {
         mainWindow.webContents.send('loading-status', true);
+        const filesObj = fileStore.get('files') || {};
+        const manager = createManager();
+        const uploadPromiseArr = Object.keys(filesObj).map(key => {
+            const { title, path } = filesObj[key];
+            return manager.uploadFile(`${title}.md`, path);
+        });
 
-        setTimeout(() => {
+        Promise.all(uploadPromiseArr).then((res) => {
+            console.log('res:', res);
+            mainWindow.webContents.send('files-uploaded');
+            dialog.showMessageBox({
+                type: 'info',
+                title: `成功上传了${res.length}个文件。`,
+                message: `成功上传了${res.length}个文件。`
+            });
+        }).catch(() => {
+            dialog.showErrorBox('同步失败', '请检查七牛云参数');
+        }).finally(() => {
             mainWindow.webContents.send('loading-status', false);
-        }, 1000);
+        });
     });
 }); 
